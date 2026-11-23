@@ -119,7 +119,7 @@ export class Legend {
         row.appendChild(toggle)
         this.seriesContainer.appendChild(row)
 
-        const color = series.options().color;
+        const color = (series.options() as any).color;
         this._lines.push({
             name: name,
             div: div,

@@ -244,7 +244,7 @@ class SeriesCommon(Pane):
         self.run_script(f'{self.id}.series.update({js_data(series)})')
 
     def _update_markers(self):
-        self.run_script(f'{self.id}.series.setMarkers({json.dumps(list(self.markers.values()))})')
+        self.run_script(f'{self.id}.series.markers.setMarkers({json.dumps(list(self.markers.values()))})')
 
     def marker_list(self, markers: list):
         """
@@ -856,14 +856,12 @@ class AbstractChart(Candlestick, Pane):
         Adds a watermark to the chart.
         """
         self.run_script(f'''
-          {self.id}.chart.applyOptions({{
-              watermark: {{
-                  visible: true,
-                  horzAlign: 'center',
-                  vertAlign: 'center',
-                  ...{js_json(locals())}
-              }}
-          }})''')
+          LightweightCharts.createTextWatermark({self.id}.chart.panes()[0], {{
+              horzAlign: 'center',
+              vertAlign: 'center',
+              lines: [{{text: '{text}', color: '{color}', fontSize: {font_size}}}]
+          }})
+        ''')
 
     def legend(self, visible: bool = False, ohlc: bool = True, percent: bool = True, lines: bool = True,
                color: str = 'rgb(191, 195, 203)', font_size: int = 11, font_family: str = 'Monaco',

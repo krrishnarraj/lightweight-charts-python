@@ -156,11 +156,29 @@ class StaticLWC(abstract.AbstractChart):
 class StreamlitChart(StaticLWC):
     def __init__(self, width=None, height=None, inner_width=1, inner_height=1, scale_candles_only: bool = False, toolbox: bool = False):
         super().__init__(width, height, inner_width, inner_height, scale_candles_only, toolbox)
+        if self.width is None:
+            self.width = 700
+        if self.height is None:
+            self.height = 400
 
     def _load(self):
+        html = f'{self._html}</script></body></html>'
+        # Prefer the modern iframe API on recent Streamlit versions.
+        stif = None
+        try:
+            import streamlit as _st
+            stif = getattr(_st, 'iframe', None)
+        except Exception:
+            stif = None
+        if stif is not None:
+            try:
+                stif(html, width=self.width, height=self.height)
+                return
+            except Exception:
+                pass
         if sthtml is None:
             raise ModuleNotFoundError('streamlit.components.v1.html was not found, and must be installed to use StreamlitChart.')
-        sthtml(f'{self._html}</script></body></html>', width=self.width, height=self.height)
+        sthtml(html, width=self.width, height=self.height, scrolling=True)
 
 
 class JupyterChart(StaticLWC):
