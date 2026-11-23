@@ -183,15 +183,32 @@ class SeriesCommon(Pane):
     def _format_labels(data, labels, index, exclude_lowercase):
         def rename(la, mapper):
             return [mapper[key] if key in mapper else key for key in la]
-        if 'date' not in labels and 'time' not in labels:
-            labels = labels.str.lower()
+
+        original_labels = list(labels)
+        lower_labels = [str(l).lower() for l in original_labels]
+
+        # find a time-like column (case-insensitive)
+        time_candidates = {'date', 'time', 'datetime', 'timestamp', 'dt', 'date_time', 'date_time_utc'}
+        found_time_col = None
+        for i, lab in enumerate(lower_labels):
+            if lab in time_candidates:
+                found_time_col = original_labels[i]
+                break
+
+        if found_time_col is not None:
+            # rename only that column to 'time', preserve case of others
+            mapper = {found_time_col: 'time'}
+            labels = rename(original_labels, mapper)
             if exclude_lowercase:
-                labels = rename(labels, {exclude_lowercase.lower(): exclude_lowercase})
-        if 'date' in labels:
-            labels = rename(labels, {'date': 'time'})
-        elif 'time' not in labels:
-            data['time'] = index
-            labels = [*labels, 'time']
+                labels = rename(labels, {str(exclude_lowercase).lower(): exclude_lowercase})
+            return labels
+
+        # no time-like column: lowercase all (original behavior)
+        labels = [str(l).lower() for l in original_labels]
+        if exclude_lowercase:
+            labels = rename(labels, {str(exclude_lowercase).lower(): exclude_lowercase})
+        data['time'] = index
+        labels = [*labels, 'time']
         return labels
 
     def _df_datetime_format(self, df: pd.DataFrame, exclude_lowercase=None):
