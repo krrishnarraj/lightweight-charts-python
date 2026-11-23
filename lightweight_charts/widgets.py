@@ -185,24 +185,36 @@ class StreamlitChart(StaticLWC):
             try:
                 stif(html, width=self.width, height=self.height)
                 return
-            except Exception:
-                pass
+            except Exception as e:
+                import sys
+                print(f'lightweight_charts: st.iframe(html) failed: {e}', file=sys.stderr)
             # Fall back to a temporary file (supported by st.iframe).
             try:
                 import tempfile, os
+                from pathlib import Path
                 fd, path = tempfile.mkstemp(suffix='.html')
                 with os.fdopen(fd, 'w', encoding='utf-8') as f:
                     f.write(html)
-                stif(path, width=self.width, height=self.height)
+                stif(Path(path), width=self.width, height=self.height)
                 return
-            except Exception:
-                pass
+            except Exception as e:
+                import sys
+                print(f'lightweight_charts: st.iframe(Path) failed: {e}', file=sys.stderr)
+
+        # Non-deprecated fallback that still executes JavaScript.
+        try:
+            import streamlit as _st
+            if hasattr(_st, 'html'):
+                _st.html(html, unsafe_allow_javascript=True)
+                return
+        except Exception as e:
+            import sys
+            print(f'lightweight_charts: st.html fallback failed: {e}', file=sys.stderr)
 
         if sthtml is None:
             raise ModuleNotFoundError('streamlit.components.v1.html was not found, and must be installed to use StreamlitChart.')
         import warnings
-        warnings.filterwarnings('ignore', message='.*st.components.v1.html.*')
-        warnings.filterwarnings('ignore', message='.*Please replace.*st.iframe.*')
+        warnings.filterwarnings('ignore', message='.*')
         sthtml(html, width=self.width, height=self.height, scrolling=True)
 
 
