@@ -168,41 +168,16 @@ class StreamlitChart(StaticLWC):
         try:
             import streamlit as _st
             stif = getattr(_st, 'iframe', None)
-            if stif is None and hasattr(_st, '_main'):
-                stif = getattr(_st._main, 'iframe', None)
         except Exception:
             stif = None
-        # Some Streamlit versions expose iframe under components.v1
-        if stif is None:
-            try:
-                from streamlit.components import v1 as _c1
-                stif = getattr(_c1, 'iframe', None)
-            except Exception:
-                stif = None
-
         if stif is not None:
-            # Try passing the HTML string directly first.
             try:
                 stif(html, width=self.width, height=self.height)
                 return
             except Exception:
                 pass
-            # Fall back to a temporary file (supported by st.iframe).
-            try:
-                import tempfile, os
-                fd, path = tempfile.mkstemp(suffix='.html')
-                with os.fdopen(fd, 'w', encoding='utf-8') as f:
-                    f.write(html)
-                stif(path, width=self.width, height=self.height)
-                return
-            except Exception:
-                pass
-
         if sthtml is None:
             raise ModuleNotFoundError('streamlit.components.v1.html was not found, and must be installed to use StreamlitChart.')
-        import warnings
-        warnings.filterwarnings('ignore', message='.*st.components.v1.html.*')
-        warnings.filterwarnings('ignore', message='.*Please replace.*st.iframe.*')
         sthtml(html, width=self.width, height=self.height, scrolling=True)
 
 
