@@ -217,6 +217,8 @@ class SeriesCommon(Pane):
         self._set_interval(df)
         if not pd.api.types.is_datetime64_any_dtype(df['time']):
             df['time'] = pd.to_datetime(df['time'])
+        if getattr(df['time'].dt, 'tz', None) is not None:
+            df['time'] = df['time'].dt.tz_convert('UTC').dt.tz_localize(None)
         df['time'] = df['time'].astype('datetime64[ns]').astype('int64') // 10 ** 9
         return df
 
@@ -569,6 +571,7 @@ class Candlestick(SeriesCommon):
             return
         df = self._df_datetime_format(df)
         self.candle_data = df.copy()
+        self.data = df.copy()
         self._last_bar = df.iloc[-1]
         self.run_script(f'{self.id}.series.setData({js_data(df)})')
 
