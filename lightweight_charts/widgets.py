@@ -156,9 +156,9 @@ class StaticLWC(abstract.AbstractChart):
 class StreamlitChart(StaticLWC):
     def __init__(self, width=None, height=None, inner_width=1, inner_height=1, scale_candles_only: bool = False, toolbox: bool = False):
         super().__init__(width, height, inner_width, inner_height, scale_candles_only, toolbox)
-        if self.width is None:
+        if not self.width:
             self.width = 700
-        if self.height is None:
+        if not self.height:
             self.height = 400
 
     def _load(self):
